@@ -57,7 +57,7 @@ namespace demowinformcs1
             }
         }
 
-        private void OnEventImage()
+        private async void OnEventImage()
         {
             if (bmp_ != null)
             {
@@ -73,12 +73,31 @@ namespace demowinformcs1
                 pictureBox1.Invalidate();
                 pictureBox1.Refresh();
 
-                BeginInvoke((MethodInvoker) delegate
+                await ProcessResult();
+            }
+
+        }
+        private Task ProcessResult()
+        {
+            var x = Task.Factory.StartNew( () => {
+                Do(result, label =>
                 {
                     var sharpnessLevel = GetSharpnessLevel(bmp_, xSobel, ySobel, 1.0, 0, true);
                     result.Text = $@"result: {sharpnessLevel}";
-                    result.Refresh();
-                });
+                } );
+            });
+            return x;
+        }
+
+        public static void Do<TControl>(TControl control, Action<TControl> action) where TControl : Control
+        {
+            if (control.InvokeRequired)
+            {
+                control.Invoke(action, control);
+            }
+            else
+            {
+                action(control);
             }
         }
 
