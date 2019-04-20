@@ -80,7 +80,7 @@ namespace demowinformcs1
         private Task ProcessResult()
         {
             var x = Task.Factory.StartNew( () => {
-                Do(result, label =>
+                InvokeOnUiThread(result, label =>
                 {
                     var sharpnessLevel = GetSharpnessLevel(bmp_, xSobel, ySobel, 1.0, 0, true);
                     result.Text = $@"result: {sharpnessLevel}";
@@ -89,7 +89,7 @@ namespace demowinformcs1
             return x;
         }
 
-        public static void Do<TControl>(TControl control, Action<TControl> action) where TControl : Control
+        private void InvokeOnUiThread<TControl>(TControl control, Action<TControl> action) where TControl : Control
         {
             if (control.InvokeRequired)
             {
