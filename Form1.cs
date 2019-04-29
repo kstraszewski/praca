@@ -61,7 +61,7 @@ namespace demowinformcs1
         {
             if (bmp_ != null)
             {
-                result.Text = $@"result:";
+                
                 BitmapData bmpdata = bmp_.LockBits(new Rectangle(0, 0, bmp_.Width, bmp_.Height), ImageLockMode.WriteOnly, bmp_.PixelFormat);
 
                 ToupCam.FrameInfoV2 info = new ToupCam.FrameInfoV2();
@@ -73,33 +73,19 @@ namespace demowinformcs1
                 pictureBox1.Invalidate();
                 pictureBox1.Refresh();
 
-                await ProcessResult();
-            }
 
-        }
-        private Task ProcessResult()
-        {
-            var x = Task.Factory.StartNew( () => {
-                InvokeOnUiThread(result, label =>
+                var sharpnessLevel = GetSharpnessLevel(bmp_, xSobel, ySobel, 1.0, 0, true);
+                
+                result.ChangeStateSafely(() =>
                 {
-                    var sharpnessLevel = GetSharpnessLevel(bmp_, xSobel, ySobel, 1.0, 0, true);
-                    result.Text = $@"result: {sharpnessLevel}";
-                } );
-            });
-            return x;
-        }
+                    result.Text = $@"Current result : {sharpnessLevel}";
+                });
+            }
 
-        private void InvokeOnUiThread<TControl>(TControl control, Action<TControl> action) where TControl : Control
-        {
-            if (control.InvokeRequired)
-            {
-                control.Invoke(action, control);
-            }
-            else
-            {
-                action(control);
-            }
         }
+        
+
+        
 
         private void OnEventStillImage()
         {
@@ -580,6 +566,35 @@ namespace demowinformcs1
         private void button6_Click(object sender, EventArgs e)
         {
             sendMsg("U");
+        }
+    }
+
+    public static class ControlThreadExtensions
+    {
+        public static void ChangeStateSafely(this Control target, Action action)
+        {
+            if (target.InvokeRequired)
+                target.Invoke(action);
+            else
+                action();
+        }
+
+        // Typowane, może się przydać
+        public static void ChangeStateSafely<T1>(this Control target, Action<T1> action, T1 parameter)
+        {
+            if (target.InvokeRequired)
+                target.Invoke(action, parameter);
+            else
+                action(parameter);
+        }
+
+        // Popisówka w chuj
+        public static void ChangeStateSafely(this Control target, Action<object[]> action, params object[] invokeParams)
+        {
+            if (target.InvokeRequired)
+                target.Invoke(action, invokeParams);
+            else
+                action(invokeParams);
         }
     }
 }
