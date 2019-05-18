@@ -14,7 +14,9 @@ using System.Text;
 using System.Windows.Forms;
 using ToupTek;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
+using ThreadState = System.Threading.ThreadState;
 
 namespace demowinformcs1
 {
@@ -69,15 +71,24 @@ namespace demowinformcs1
 
                 bmp_.UnlockBits(bmpdata);
 
-
-
-                pictureBox1.Image = bmp_;
-                pictureBox1.Invalidate();
-                pictureBox1.Refresh();
-
-
-                var sharpnessLevel = GetSharpnessLevel(bmp_, xSobel, ySobel, 1.0, 0, true);
+                if (newThread.ThreadState == ThreadState.Stopped || newThread.ThreadState == ThreadState.Unstarted)
+                {
+                    var copy = (Bitmap) bmp_.Clone();
+                    newThread = new Thread(() =>
+                    {
+                        sharpnessLevel = GetSharpnessLevel(copy, xSobel, ySobel, 1.0, 0, true);
+                        
+                    });
+                    newThread.Start();
+                }
                 
+
+                pictureBox1.ChangeStateSafely(()=> {
+                    pictureBox1.Image = bmp_;
+                    pictureBox1.Invalidate();
+                    pictureBox1.Refresh();
+                });
+
                 result.ChangeStateSafely(() =>
                 {
                     result.Text = $@"Current result : {sharpnessLevel}";
@@ -105,10 +116,13 @@ namespace demowinformcs1
         }
 
         private readonly SerialPort currentPort;
+        private Thread newThread;
+        private object sharpnessLevel;
+        const string portName = "COM4";
         public Form1()
         {
             InitializeComponent();
-            const string portName = "COM4";
+            
             currentPort = new SerialPort(portName);
         }
 
@@ -542,7 +556,7 @@ namespace demowinformcs1
             {
                 if (!myport.IsOpen)
                 {
-                    myport.PortName = "COM5";
+                    myport.PortName = portName;
                     myport.Open();
                 }
             }
