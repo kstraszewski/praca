@@ -69,6 +69,8 @@ namespace demowinformcs1
 
                 bmp_.UnlockBits(bmpdata);
 
+
+
                 pictureBox1.Image = bmp_;
                 pictureBox1.Invalidate();
                 pictureBox1.Refresh();
