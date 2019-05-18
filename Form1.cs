@@ -77,7 +77,7 @@ namespace demowinformcs1
                     newThread = new Thread(() =>
                     {
                         sharpnessLevel = GetSharpnessLevel(copy, xSobel, ySobel, 1.0, 0, true);
-                        
+                        Debug.WriteLine(sharpnessLevel);
                     });
                     newThread.Start();
                 }
@@ -116,7 +116,7 @@ namespace demowinformcs1
         }
 
         private readonly SerialPort currentPort;
-        private Thread newThread;
+        private Thread newThread = new Thread(() => {});
         private object sharpnessLevel;
         const string portName = "COM4";
         public Form1()
@@ -314,7 +314,7 @@ namespace demowinformcs1
             }
         }
 
-        private static double GetSharpnessLevel(Bitmap sourceImage, double[,] xkernel, double[,] ykernel, double factor = 1, int bias = 0, bool grayscale = false)
+        private  double GetSharpnessLevel(Bitmap sourceImage, double[,] xkernel, double[,] ykernel, double factor = 1, int bias = 0, bool grayscale = false)
         {
 
             //Image dimensions stored in variables for convenience
